@@ -25,5 +25,4 @@ public interface PacketOut extends Packet {
     default void decode(ByteMessage msg, Version version) {
         // Can be ignored for outgoing packets
     }
-
 }

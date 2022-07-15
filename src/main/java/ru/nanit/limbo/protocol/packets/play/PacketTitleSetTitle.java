@@ -33,5 +33,4 @@ public class PacketTitleSetTitle implements PacketOut {
     public void encode(ByteMessage msg, Version version) {
         msg.writeString(title);
     }
-
 }

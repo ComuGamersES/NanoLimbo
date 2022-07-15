@@ -30,6 +30,7 @@ import ru.nanit.limbo.server.LimboServer;
 import ru.nanit.limbo.server.Logger;
 import ru.nanit.limbo.util.UuidUtil;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PacketHandler {
@@ -44,7 +45,7 @@ public class PacketHandler {
         conn.updateVersion(packet.getVersion());
         conn.updateState(packet.getNextState());
 
-        Logger.debug("Pinged from %s [%s]", conn.getAddress(),
+        Logger.debug("Received ping from %s [%s]", conn.getAddress(),
                 conn.getClientVersion().toString());
 
         if (server.getConfig().getInfoForwarding().isLegacy()) {
@@ -54,11 +55,15 @@ public class PacketHandler {
                 conn.setAddress(split[1]);
                 conn.getGameProfile().setUuid(UuidUtil.fromString(split[2]));
             } else {
-                conn.disconnectLogin("You've enabled player info forwarding. You need to connect with proxy");
+                conn.disconnectLogin(
+                        server.getConfig().getInfoForwarding().getNoDataForwardedMessage()
+                );
             }
         } else if (server.getConfig().getInfoForwarding().isBungeeGuard()) {
             if (!conn.checkBungeeGuardHandshake(packet.getHost())) {
-                conn.disconnectLogin("Invalid BungeeGuard token or handshake format");
+                conn.disconnectLogin(
+                        server.getConfig().getInfoForwarding().getInvalidForwardedDataMessage()
+                );
             }
         }
     }
@@ -74,12 +79,12 @@ public class PacketHandler {
     public void handle(ClientConnection conn, PacketLoginStart packet) {
         if (server.getConfig().getMaxPlayers() > 0 &&
                 server.getConnections().getCount() >= server.getConfig().getMaxPlayers()) {
-            conn.disconnectLogin("Too many players connected");
+            conn.disconnectLogin(server.getConfig().getServerFullMessage());
             return;
         }
 
         if (!conn.getClientVersion().isSupported()) {
-            conn.disconnectLogin("Unsupported client version");
+            conn.disconnectLogin(server.getConfig().getIncompatibleClientMessage());
             return;
         }
 
@@ -109,12 +114,12 @@ public class PacketHandler {
                 && packet.getMessageId() == conn.getVelocityLoginMessageId()) {
 
             if (!packet.isSuccessful() || packet.getData() == null) {
-                conn.disconnectLogin("You need to connect with Velocity");
+                conn.disconnectLogin(server.getConfig().getInfoForwarding().getVelocityRequiredMessage());
                 return;
             }
 
             if (!conn.checkVelocityKeyIntegrity(packet.getData())) {
-                conn.disconnectLogin("Can't verify forwarded player info");
+                conn.disconnectLogin(server.getConfig().getInfoForwarding().getKeyIntegrityFailedMessage());
                 return;
             }
 
@@ -126,5 +131,4 @@ public class PacketHandler {
             conn.fireLoginSuccess();
         }
     }
-
 }

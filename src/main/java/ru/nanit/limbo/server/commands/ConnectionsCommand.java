@@ -4,11 +4,11 @@ import ru.nanit.limbo.server.Command;
 import ru.nanit.limbo.server.LimboServer;
 import ru.nanit.limbo.server.Logger;
 
-public class CmdConn implements Command {
+public class ConnectionsCommand implements Command {
 
     private final LimboServer server;
 
-    public CmdConn(LimboServer server) {
+    public ConnectionsCommand(LimboServer server) {
         this.server = server;
     }
 

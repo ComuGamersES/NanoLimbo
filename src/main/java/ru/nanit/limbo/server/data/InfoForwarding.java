@@ -30,6 +30,10 @@ public class InfoForwarding {
     private Type type;
     private byte[] secretKey;
     private List<String> tokens;
+    private String noDataForwardedMessage;
+    private String invalidForwardedDataMessage;
+    private String velocityRequiredMessage;
+    private String keyIntegrityFailedMessage;
 
     public Type getType() {
         return type;
@@ -63,6 +67,22 @@ public class InfoForwarding {
         return type == Type.BUNGEE_GUARD;
     }
 
+    public String getNoDataForwardedMessage() {
+        return noDataForwardedMessage;
+    }
+
+    public String getInvalidForwardedDataMessage() {
+        return invalidForwardedDataMessage;
+    }
+
+    public String getVelocityRequiredMessage() {
+        return velocityRequiredMessage;
+    }
+
+    public String getKeyIntegrityFailedMessage() {
+        return keyIntegrityFailedMessage;
+    }
+
     public enum Type {
         NONE,
         LEGACY,
@@ -90,13 +110,18 @@ public class InfoForwarding {
                 forwarding.tokens = node.node("tokens").getList(String.class);
             }
 
+            // Get kick messages
+            forwarding.noDataForwardedMessage = node.node("errors", "no-forwarding-data").getString();
+            forwarding.invalidForwardedDataMessage = node.node("errors", "invalid-forwarded-data").getString();
+            forwarding.keyIntegrityFailedMessage = node.node("errors", "key-integrity-failed").getString();
+            forwarding.velocityRequiredMessage = node.node("errors", "velocity-required").getString();
+
             return forwarding;
         }
 
         @Override
-        public void serialize(java.lang.reflect.Type type, @Nullable InfoForwarding obj, ConfigurationNode node) throws SerializationException {
+        public void serialize(java.lang.reflect.Type type, @Nullable InfoForwarding obj, ConfigurationNode node) {
 
         }
     }
-
 }

@@ -29,5 +29,4 @@ public final class NanoLimbo {
             Logger.error("Cannot start server: ", e);
         }
     }
-
 }

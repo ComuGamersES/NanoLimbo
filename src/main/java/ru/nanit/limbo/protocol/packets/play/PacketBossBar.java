@@ -55,5 +55,4 @@ public class PacketBossBar implements PacketOut {
         msg.writeVarInt(bossBar.getDivision().getIndex());
         msg.writeByte(flags);
     }
-
 }

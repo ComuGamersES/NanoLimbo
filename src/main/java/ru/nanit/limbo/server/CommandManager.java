@@ -1,9 +1,9 @@
 package ru.nanit.limbo.server;
 
-import ru.nanit.limbo.server.commands.CmdConn;
-import ru.nanit.limbo.server.commands.CmdHelp;
-import ru.nanit.limbo.server.commands.CmdMem;
-import ru.nanit.limbo.server.commands.CmdStop;
+import ru.nanit.limbo.server.commands.ConnectionsCommand;
+import ru.nanit.limbo.server.commands.HelpCommand;
+import ru.nanit.limbo.server.commands.MemoryCommand;
+import ru.nanit.limbo.server.commands.StopCommand;
 
 import java.util.*;
 
@@ -46,14 +46,14 @@ public final class CommandManager extends Thread {
                 continue;
             }
 
-            Logger.info("Unknown command. Type \"help\" to get commands list");
+            Logger.info("Unknown command. Type \"help\" to get a list of available commands.");
         }
     }
 
     public void registerAll(LimboServer server) {
-        register("help", new CmdHelp(server));
-        register("conn", new CmdConn(server));
-        register("mem", new CmdMem());
-        register("stop", new CmdStop());
+        register("help", new HelpCommand(server));
+        register("conn", new ConnectionsCommand(server));
+        register("mem", new MemoryCommand());
+        register("stop", new StopCommand());
     }
 }

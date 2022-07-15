@@ -39,7 +39,6 @@ public class PacketDeclareCommands implements PacketOut {
         msg.writeVarInt(commands.size() * 2 + 1); // +1 because declaring root node
 
         // Declare root node
-
         msg.writeByte(0);
         msg.writeVarInt(commands.size());
 
@@ -48,7 +47,6 @@ public class PacketDeclareCommands implements PacketOut {
         }
 
         // Declare other commands
-
         int i = 1;
         for (String cmd : commands) {
             msg.writeByte(1 | 0x04);
@@ -69,5 +67,4 @@ public class PacketDeclareCommands implements PacketOut {
 
         msg.writeVarInt(0);
     }
-
 }

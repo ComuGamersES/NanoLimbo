@@ -10,6 +10,10 @@ bind:
 # Max amount of players can join to server
 # Set -1 to make it infinite
 maxPlayers: 100
+serverFullMessage: 'Too many players connected'
+
+# Message shown when a player is connecting to the server with an incompatible client
+incompatibleClientMessage: 'Unsupported client version'
 
 # Server's data in servers list
 ping:
@@ -22,8 +26,8 @@ dimension: THE_END
 # Whether to display the player in the player list
 # For 1.16.5 clients player list will be sent even if disabled, to avoid crash
 playerList:
-  enable: false
-  username: 'NanoLimbo'
+  enable: true
+  username: '%PLAYER%'
 
 # Whether to display header and footer in player list
 headerAndFooter:
@@ -93,6 +97,11 @@ infoForwarding:
   secret: '<YOUR_SECRET_HERE>'
   tokens:
     - '<BUNGEE_GUARD_TOKEN>'
+  errors:
+    invalid-forwarded-data: "Invalid BungeeGuard token or handshake format"
+    no-forwarding-data: "You've enabled player info forwarding. You need to connect with proxy"
+    velocity-required: "You need to connect with Velocity"
+    key-integrity-failed: "Can't verify forwarded player info"
 
 # Read timeout for connections in milliseconds
 readTimeout: 30000

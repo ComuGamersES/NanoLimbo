@@ -30,5 +30,4 @@ public interface Packet {
     default void handle(ClientConnection conn, LimboServer server) {
         // Ignored by default
     }
-
 }

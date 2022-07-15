@@ -53,5 +53,4 @@ public class PacketLoginSuccess implements PacketOut {
     public String toString() {
         return getClass().getSimpleName();
     }
-
 }

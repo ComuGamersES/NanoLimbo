@@ -78,5 +78,4 @@ public class PacketPlayerPositionAndLook implements PacketOut {
             msg.writeBoolean(false); // Dismount vehicle
         }
     }
-
 }

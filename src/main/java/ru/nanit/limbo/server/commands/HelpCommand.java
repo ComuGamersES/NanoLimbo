@@ -6,11 +6,11 @@ import ru.nanit.limbo.server.Logger;
 
 import java.util.Map;
 
-public class CmdHelp implements Command {
+public class HelpCommand implements Command {
 
     private final LimboServer server;
 
-    public CmdHelp(LimboServer server) {
+    public HelpCommand(LimboServer server) {
         this.server = server;
     }
 

@@ -28,14 +28,17 @@ public class VarIntByteDecoder implements ByteProcessor {
     @Override
     public boolean process(byte k) {
         readVarInt |= (k & 0x7F) << bytesRead++ * 7;
+
         if (bytesRead > 3) {
             result = DecodeResult.TOO_BIG;
             return false;
         }
+
         if ((k & 0x80) != 128) {
             result = DecodeResult.SUCCESS;
             return false;
         }
+
         return true;
     }
 

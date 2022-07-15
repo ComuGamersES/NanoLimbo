@@ -65,7 +65,6 @@ public class ByteMessage extends ByteBuf {
         }
 
         buf.readBytes(maxRead);
-
         throw new IllegalArgumentException("Cannot read VarInt");
     }
 

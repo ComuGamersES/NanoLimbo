@@ -212,5 +212,4 @@ public class PacketJoinGame implements PacketOut {
             msg.writeBoolean(false);
         }
     }
-
 }

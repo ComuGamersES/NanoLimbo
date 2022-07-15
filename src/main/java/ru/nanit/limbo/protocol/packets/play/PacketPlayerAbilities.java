@@ -45,5 +45,4 @@ public class PacketPlayerAbilities implements PacketOut {
         msg.writeFloat(flyingSpeed);
         msg.writeFloat(fieldOfView);
     }
-
 }

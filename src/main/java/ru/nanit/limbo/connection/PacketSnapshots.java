@@ -104,7 +104,6 @@ public final class PacketSnapshots {
         PACKET_PLAYER_ABILITIES = PacketSnapshot.of(playerAbilities);
         PACKET_PLAYER_POS = PacketSnapshot.of(positionAndLook);
         PACKET_PLAYER_INFO = PacketSnapshot.of(info);
-
         PACKET_DECLARE_COMMANDS = PacketSnapshot.of(declareCommands);
 
         if (server.getConfig().isUseHeaderAndFooter()) {
@@ -114,7 +113,7 @@ public final class PacketSnapshots {
             PACKET_HEADER_AND_FOOTER = PacketSnapshot.of(header);
         }
 
-        if (server.getConfig().isUseBrandName()){
+        if (server.getConfig().isUseBrandName()) {
             PacketPluginMessage pluginMessage = new PacketPluginMessage();
             pluginMessage.setChannel(LimboConstants.BRAND_CHANNEL);
             pluginMessage.setMessage(server.getConfig().getBrandName());

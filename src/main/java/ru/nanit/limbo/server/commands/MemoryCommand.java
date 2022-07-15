@@ -3,7 +3,7 @@ package ru.nanit.limbo.server.commands;
 import ru.nanit.limbo.server.Command;
 import ru.nanit.limbo.server.Logger;
 
-public class CmdMem implements Command {
+public class MemoryCommand implements Command {
 
     @Override
     public void execute() {

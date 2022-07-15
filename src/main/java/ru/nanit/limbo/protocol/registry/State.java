@@ -327,5 +327,4 @@ public enum State {
     private static Mapping map(int packetId, Version from, Version to) {
         return new Mapping(packetId, from, to);
     }
-
 }

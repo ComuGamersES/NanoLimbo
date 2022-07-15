@@ -66,7 +66,5 @@ public class PacketChatMessage implements PacketOut {
         PositionLegacy(int index) {
             this.index = index;
         }
-
     }
-
 }

@@ -53,5 +53,4 @@ public class ClientChannelInitializer extends ChannelInitializer<Channel> {
         pipeline.addLast("encoder", encoder);
         pipeline.addLast("handler", connection);
     }
-
 }

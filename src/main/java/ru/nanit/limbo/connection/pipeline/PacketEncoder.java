@@ -75,5 +75,4 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     public void updateState(State state) {
         this.registry = state.clientBound.getRegistry(version);
     }
-
 }

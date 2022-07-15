@@ -40,6 +40,7 @@ public final class LimboConfig {
 
     private SocketAddress address;
     private int maxPlayers;
+    private String serverFullMessage;
     private PingData pingData;
 
     private String dimensionType;
@@ -55,6 +56,7 @@ public final class LimboConfig {
 
     private String brandName;
     private String joinMessage;
+    private String incompatibleClientMessage;
     private BossBar bossBar;
     private Title title;
 
@@ -85,14 +87,18 @@ public final class LimboConfig {
 
         address = conf.node("bind").get(SocketAddress.class);
         maxPlayers = conf.node("maxPlayers").getInt();
+        serverFullMessage = conf.node("serverFullMessage").getString();
         pingData = conf.node("ping").get(PingData.class);
-        dimensionType = conf.node("dimension").getString();
+        dimensionType = conf.node("dimension").getString("THE_END"); // fallback to THE_END by default
+
         if (dimensionType.equalsIgnoreCase("nether")) {
             dimensionType = "the_nether";
         }
+
         if (dimensionType.equalsIgnoreCase("end")) {
             dimensionType = "the_end";
         }
+
         spawnPosition = conf.node("spawnPosition").get(Location.class);
         gameMode = conf.node("gameMode").getInt();
         useBrandName = conf.node("brandName", "enable").getBoolean();
@@ -102,18 +108,23 @@ public final class LimboConfig {
         usePlayerList = conf.node("playerList", "enable").getBoolean();
         playerListUsername = conf.node("playerList", "username").getString();
         useHeaderAndFooter = conf.node("headerAndFooter", "enable").getBoolean();
+        incompatibleClientMessage = conf.node("incompatibleClientMessage").getString();
 
-        if (useBrandName)
+        if (useBrandName) {
             brandName = conf.node("brandName", "content").getString();
+        }
 
-        if (useJoinMessage)
+        if (useJoinMessage) {
             joinMessage = Colors.of(conf.node("joinMessage", "text").getString(""));
+        }
 
-        if (useBossBar)
+        if (useBossBar) {
             bossBar = conf.node("bossBar").get(BossBar.class);
+        }
 
-        if (useTitle)
+        if (useTitle) {
             title = conf.node("title").get(Title.class);
+        }
 
         if (useHeaderAndFooter) {
             playerListHeader = Colors.of(conf.node("headerAndFooter", "header").getString());
@@ -254,5 +265,13 @@ public final class LimboConfig {
 
     public int getWorkerGroupSize() {
         return workerGroupSize;
+    }
+
+    public String getServerFullMessage() {
+        return serverFullMessage;
+    }
+
+    public String getIncompatibleClientMessage() {
+        return incompatibleClientMessage;
     }
 }

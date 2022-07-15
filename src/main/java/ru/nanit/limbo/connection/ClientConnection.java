@@ -30,6 +30,7 @@ import ru.nanit.limbo.connection.pipeline.PacketDecoder;
 import ru.nanit.limbo.connection.pipeline.PacketEncoder;
 import ru.nanit.limbo.protocol.ByteMessage;
 import ru.nanit.limbo.protocol.Packet;
+import ru.nanit.limbo.protocol.PacketSnapshot;
 import ru.nanit.limbo.protocol.packets.login.*;
 import ru.nanit.limbo.protocol.packets.play.*;
 import ru.nanit.limbo.protocol.registry.State;
@@ -113,13 +114,13 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
     public void handlePacket(Object packet) {
         if (packet instanceof Packet) {
-            ((Packet)packet).handle(this, server);
+            ((Packet) packet).handle(this, server);
         }
     }
 
     public void fireLoginSuccess() {
         if (server.getConfig().getInfoForwarding().isModern() && velocityLoginMessageId == -1) {
-            disconnectLogin("You need to connect with Velocity");
+            disconnectLogin(server.getConfig().getInfoForwarding().getVelocityRequiredMessage());
             return;
         }
 
@@ -128,31 +129,55 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
         server.getConnections().addConnection(this);
 
+        // get the default player info packet snapshot
+        PacketSnapshot LOCAL_PACKET_PLAYER_INFO = PacketSnapshots.PACKET_PLAYER_INFO;
+
+        // allow usage of the %PLAYER% placeholder.
+        // probably not the best way to do it, but it works i guess?
+        if(server.getConfig().isUsePlayerList() && server.getConfig().getPlayerListUsername().contains("%PLAYER%")) {
+            // create a new player info packet
+            PacketPlayerInfo info = new PacketPlayerInfo();
+
+            // set username, game mode and uuid
+            info.setUsername(server.getConfig().getPlayerListUsername().replace("%PLAYER%", getUsername()));
+            info.setGameMode(server.getConfig().getGameMode());
+            info.setUuid(getUuid());
+
+            // set the modified packet snapshot
+            LOCAL_PACKET_PLAYER_INFO = PacketSnapshot.of(info);
+        }
+
         writePacket(PacketSnapshots.PACKET_JOIN_GAME);
         writePacket(PacketSnapshots.PACKET_PLAYER_ABILITIES);
         writePacket(PacketSnapshots.PACKET_PLAYER_POS);
 
-        if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4))
-            writePacket(PacketSnapshots.PACKET_PLAYER_INFO);
+        if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4)) {
+            writePacket(LOCAL_PACKET_PLAYER_INFO);
+        }
 
         if (clientVersion.moreOrEqual(Version.V1_13)) {
             writePacket(PacketSnapshots.PACKET_DECLARE_COMMANDS);
 
-            if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null)
+            if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null) {
                 writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
+            }
         }
 
-        if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9))
+        if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9)) {
             writePacket(PacketSnapshots.PACKET_BOSS_BAR);
+        }
 
-        if (PacketSnapshots.PACKET_JOIN_MESSAGE != null)
+        if (PacketSnapshots.PACKET_JOIN_MESSAGE != null) {
             writePacket(PacketSnapshots.PACKET_JOIN_MESSAGE);
+        }
 
-        if (PacketSnapshots.PACKET_TITLE_TITLE != null)
+        if (PacketSnapshots.PACKET_TITLE_TITLE != null) {
             writeTitle();
+        }
 
-        if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null)
+        if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null) {
             writePacket(PacketSnapshots.PACKET_HEADER_AND_FOOTER);
+        }
 
         sendKeepAlive();
     }
@@ -186,13 +211,15 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     }
 
     public void sendPacket(Object packet) {
-        if (isConnected())
+        if (isConnected()) {
             channel.writeAndFlush(packet, channel.voidPromise());
+        }
     }
 
     public void sendPacketAndClose(Object packet) {
-        if (isConnected())
+        if (isConnected()) {
             channel.writeAndFlush(packet).addListener(ChannelFutureListener.CLOSE);
+        }
     }
 
     public void writePacket(Object packet) {
@@ -217,7 +244,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     }
 
     public void setAddress(String host) {
-        this.address = new InetSocketAddress(host, ((InetSocketAddress)this.address).getPort());
+        this.address = new InetSocketAddress(host, ((InetSocketAddress) this.address).getPort());
     }
 
     boolean checkBungeeGuardHandshake(String handshake) {
@@ -248,14 +275,14 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
             }
         }
 
-        if (!server.getConfig().getInfoForwarding().hasToken(token))
+        if (!server.getConfig().getInfoForwarding().hasToken(token)) {
             return false;
+        }
 
         setAddress(socketAddressHostname);
         gameProfile.setUuid(uuid);
 
         Logger.debug("Successfully verified BungeeGuard token");
-
         return true;
     }
 
@@ -270,20 +297,27 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     boolean checkVelocityKeyIntegrity(ByteMessage buf) {
         byte[] signature = new byte[32];
         buf.readBytes(signature);
+
         byte[] data = new byte[buf.readableBytes()];
         buf.getBytes(buf.readerIndex(), data);
+
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(server.getConfig().getInfoForwarding().getSecretKey(), "HmacSHA256"));
             byte[] mySignature = mac.doFinal(data);
-            if (!MessageDigest.isEqual(signature, mySignature))
+
+            if (!MessageDigest.isEqual(signature, mySignature)) {
                 return false;
-        } catch (InvalidKeyException |java.security.NoSuchAlgorithmException e) {
-            throw new AssertionError(e);
+            }
+        } catch (InvalidKeyException | java.security.NoSuchAlgorithmException ex) {
+            throw new AssertionError(ex);
         }
+
         int version = buf.readVarInt();
-        if (version != 1)
+        if (version != 1) {
             throw new IllegalStateException("Unsupported forwarding version " + version + ", wanted " + '\001');
+        }
+
         return true;
     }
 }

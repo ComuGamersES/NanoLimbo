@@ -36,7 +36,9 @@ public class VarIntFrameDecoder extends ByteToMessageDecoder {
         VarIntByteDecoder reader = new VarIntByteDecoder();
         int varIntEnd = in.forEachByte(reader);
 
-        if (varIntEnd == -1) return;
+        if (varIntEnd == -1) {
+            return;
+        }
 
         if (reader.getResult() == VarIntByteDecoder.DecodeResult.SUCCESS) {
             int readVarInt = reader.getReadVarInt();
