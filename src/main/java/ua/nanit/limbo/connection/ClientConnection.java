@@ -30,8 +30,10 @@ import ua.nanit.limbo.connection.pipeline.PacketDecoder;
 import ua.nanit.limbo.connection.pipeline.PacketEncoder;
 import ua.nanit.limbo.protocol.ByteMessage;
 import ua.nanit.limbo.protocol.Packet;
+import ua.nanit.limbo.protocol.PacketSnapshot;
 import ua.nanit.limbo.protocol.packets.login.PacketDisconnect;
 import ua.nanit.limbo.protocol.packets.play.PacketKeepAlive;
+import ua.nanit.limbo.protocol.packets.play.PacketPlayerInfo;
 import ua.nanit.limbo.protocol.registry.State;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
@@ -128,6 +130,26 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         updateState(State.PLAY);
         server.getConnections().addConnection(this);
 
+        // get the default player info packet snapshot
+        PacketSnapshot LOCAL_PACKET_PLAYER_INFO;
+
+        // allow usage of the %PLAYER% placeholder.
+        // probably not the best way to do it, but it works i guess?
+        if(server.getConfig().isUsePlayerList() && server.getConfig().getPlayerListUsername().contains("%PLAYER%")) {
+            // create a new player info packet
+            PacketPlayerInfo info = new PacketPlayerInfo();
+
+            // set username, game mode and uuid
+            info.setUsername(server.getConfig().getPlayerListUsername().replace("%PLAYER%", getUsername()));
+            info.setGameMode(server.getConfig().getGameMode());
+            info.setUuid(getUuid());
+
+            // set the modified packet snapshot
+            LOCAL_PACKET_PLAYER_INFO = PacketSnapshot.of(info);
+        } else {
+            LOCAL_PACKET_PLAYER_INFO = PacketSnapshots.PACKET_PLAYER_INFO;
+        }
+
         Runnable sendPlayPackets = () -> {
             writePacket(PacketSnapshots.PACKET_JOIN_GAME);
             writePacket(PacketSnapshots.PACKET_PLAYER_ABILITIES);
@@ -142,7 +164,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
                 writePacket(PacketSnapshots.PACKET_SPAWN_POSITION);
 
             if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4))
-                writePacket(PacketSnapshots.PACKET_PLAYER_INFO);
+                writePacket(LOCAL_PACKET_PLAYER_INFO);
 
             if (clientVersion.moreOrEqual(Version.V1_13)) {
                 writePacket(PacketSnapshots.PACKET_DECLARE_COMMANDS);
