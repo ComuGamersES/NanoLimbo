@@ -1,9 +1,9 @@
 package ua.nanit.limbo.server;
 
-import ua.nanit.limbo.server.commands.CmdConn;
-import ua.nanit.limbo.server.commands.CmdHelp;
-import ua.nanit.limbo.server.commands.CmdMem;
-import ua.nanit.limbo.server.commands.CmdStop;
+import ua.nanit.limbo.server.commands.ConnectionsCommand;
+import ua.nanit.limbo.server.commands.HelpCommand;
+import ua.nanit.limbo.server.commands.MemoryCommand;
+import ua.nanit.limbo.server.commands.StopCommand;
 
 import java.util.*;
 
