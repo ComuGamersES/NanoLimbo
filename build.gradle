@@ -29,6 +29,8 @@ dependencies {
     implementation 'com.grack:nanojson:1.7'
 }
 
+tasks.build.dependsOn tasks.shadowJar
+
 shadowJar {
     from 'LICENSE'
 
