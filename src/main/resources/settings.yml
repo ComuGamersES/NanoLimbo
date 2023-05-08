@@ -9,16 +9,16 @@ bind:
 
 # Max amount of players can join to server
 # Set -1 to make it infinite
-maxPlayers: 100
-serverFullMessage: 'Too many players connected'
+maxPlayers: -1
+serverFullMessage: 'This should never happen (max players reached)'
 
 # Message shown when a player is connecting to the server with an incompatible client
-incompatibleClientMessage: 'Unsupported client version'
+incompatibleClientMessage: 'Tu versión de Minecraft no es compatible con nuestro Limbo aún.'
 
 # Server's data in servers list
 ping:
-  description: '{"text": "&9NanoLimbo"}'
-  version: 'NanoLimbo'
+  description: '{"text": "ComuGamers"}'
+  version: 1.72.7
 
 # Available dimensions: OVERWORLD, NETHER, THE_END
 dimension: THE_END
@@ -27,14 +27,14 @@ dimension: THE_END
 # For 1.16.5 clients, player list will be sent even if disabled, to avoid crash
 playerList:
   enable: true
-  username: '%PLAYER%'
+  username: '§e%PLAYER%'
 
 # Whether to display header and footer in player list
 # For 1.8+ clients
 headerAndFooter:
-  enable: false
-  header: '{"text": "&eWelcome!"}'
-  footer: '{"text": "&9NanoLimbo"}'
+  enable: true
+  footer: '{"text": "&f\n&6☀ &fRegresa a la &erealidad &6☀\n&r&7/lobby o /hub\n&r "}'
+  header: '{"text": "\n&r&b&lCOMU&3&lGAMERS &a&lNETWORK\n&r¡Te encuentras atrapado en nuestro limbo!&f\n&r                                                                        "}'
 
 # Setup player's game mode
 # 0 - Survival
@@ -42,23 +42,23 @@ headerAndFooter:
 # 2 - Adventure
 # 3 - Spectator (hide all UI bars)
 # Spectator works on 1.8+ clients
-gameMode: 3
+gameMode: 2
 
 # Server name which is shown under F3
 # For 1.13+ clients
 brandName:
   enable: true
-  content: 'NanoLimbo'
+  content: ComuGamers
 
 # Message sends when player join to server
 joinMessage:
-  enable: true
+  enable: false
   text: '{"text": "&eWelcome to the Limbo!"}'
 
 # BossBar displays when player join to server
 # For 1.9+ clients
 bossBar:
-  enable: true
+  enable: false
   text: '{"text": "Welcome to the Limbo!"}'
   health: 1.0
   # Available colors: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
@@ -69,7 +69,7 @@ bossBar:
 # Display title and subtitle
 # For 1.8+ clients
 title:
-  enable: true
+  enable: false
   # Set title text value empty, if you need only subtitle
   title: '{"text": "&9&lWelcome!"}'
   # Set subtitle text value empty, if you need only title
@@ -89,7 +89,7 @@ title:
 #  - BUNGEE_GUARD
 # Don't use secret if you not use MODERN type
 infoForwarding:
-  type: NONE
+  type: LEGACY
   secret: '<YOUR_SECRET_HERE>'
   tokens:
     - '<BUNGEE_GUARD_TOKEN>'
