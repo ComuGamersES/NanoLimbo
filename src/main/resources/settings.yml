@@ -19,6 +19,10 @@ incompatibleClientMessage: 'Tu versión de Minecraft no es compatible con nuestr
 ping:
   description: '{"text": "ComuGamers"}'
   version: 1.72.7
+  # Return static protocol version number in ping result
+  # By default, its -1 to return the client version, if it supported
+  # https://wiki.vg/Protocol_version_numbers
+  protocol: -1
 
 # Available dimensions: OVERWORLD, NETHER, THE_END
 dimension: THE_END
