@@ -54,14 +54,10 @@ public final class CommandManager extends Thread {
     }
 
     public void registerAll(LimboServer server) {
-        register(new CmdHelp(server), "help");
-        register(new CmdConn(server), "conn");
-        register(new CmdMem(), "mem");
-        register(new CmdStop(), "stop");
         register(new CmdVersion(), "version", "ver");
-        register("help", new HelpCommand(server));
-        register("conn", new ConnectionsCommand(server));
-        register("mem", new MemoryCommand());
-        register("stop", new StopCommand());
+        register(new HelpCommand(server), "help");
+        register(new ConnectionsCommand(server), "conn");
+        register(new MemoryCommand(), "mem");
+        register(new StopCommand(), "stop");
     }
 }
