@@ -4,6 +4,7 @@ import ua.nanit.limbo.server.commands.ConnectionsCommand;
 import ua.nanit.limbo.server.commands.HelpCommand;
 import ua.nanit.limbo.server.commands.MemoryCommand;
 import ua.nanit.limbo.server.commands.StopCommand;
+import ua.nanit.limbo.server.commands.*;
 
 import java.util.*;
 
@@ -19,8 +20,10 @@ public final class CommandManager extends Thread {
         return commands.get(name.toLowerCase());
     }
 
-    public void register(String name, Command cmd) {
-        commands.put(name.toLowerCase(), cmd);
+    public void register(Command cmd, String... aliases) {
+        for (String alias : aliases) {
+            commands.put(alias.toLowerCase(), cmd);
+        }
     }
 
     @Override
@@ -51,6 +54,11 @@ public final class CommandManager extends Thread {
     }
 
     public void registerAll(LimboServer server) {
+        register(new CmdHelp(server), "help");
+        register(new CmdConn(server), "conn");
+        register(new CmdMem(), "mem");
+        register(new CmdStop(), "stop");
+        register(new CmdVersion(), "version", "ver");
         register("help", new HelpCommand(server));
         register("conn", new ConnectionsCommand(server));
         register("mem", new MemoryCommand());

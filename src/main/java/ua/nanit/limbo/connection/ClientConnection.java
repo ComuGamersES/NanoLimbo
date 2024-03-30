@@ -96,7 +96,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
-        if (state.equals(State.PLAY)) {
+        if (state.equals(State.PLAY) || state.equals(State.CONFIGURATION)) {
             server.getConnections().removeConnection(this);
         }
         super.channelInactive(ctx);
@@ -127,7 +127,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         }
 
         sendPacket(PacketSnapshots.PACKET_LOGIN_SUCCESS);
-        updateState(State.PLAY);
+
         server.getConnections().addConnection(this);
 
         // get the default player info packet snapshot
@@ -149,6 +149,18 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         } else {
             LOCAL_PACKET_PLAYER_INFO = PacketSnapshots.PACKET_PLAYER_INFO;
         }
+
+        // Preparing for configuration mode
+        if (clientVersion.moreOrEqual(Version.V1_20_2)) {
+            updateEncoderState(State.CONFIGURATION);
+            return;
+        }
+
+        spawnPlayer();
+    }
+
+    public void spawnPlayer() {
+        updateState(State.PLAY);
 
         Runnable sendPlayPackets = () -> {
             writePacket(PacketSnapshots.PACKET_JOIN_GAME);
@@ -185,6 +197,14 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
             if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null && clientVersion.moreOrEqual(Version.V1_8))
                 writePacket(PacketSnapshots.PACKET_HEADER_AND_FOOTER);
 
+            if (clientVersion.moreOrEqual(Version.V1_20_3)) {
+                writePacket(PacketSnapshots.PACKET_START_WAITING_CHUNKS);
+
+                for (PacketSnapshot chunk : PacketSnapshots.PACKETS_EMPTY_CHUNKS) {
+                    writePacket(chunk);
+                }
+            }
+
             sendKeepAlive();
         };
 
@@ -193,6 +213,16 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         } else {
             sendPlayPackets.run();
         }
+    }
+
+    public void onLoginAcknowledgedReceived() {
+        updateState(State.CONFIGURATION);
+
+        if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null)
+            writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
+        writePacket(PacketSnapshots.PACKET_REGISTRY_DATA);
+
+        sendPacket(PacketSnapshots.PACKET_FINISH_CONFIGURATION);
     }
 
     public void disconnectLogin(String reason) {
@@ -247,6 +277,14 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     public void updateState(State state) {
         this.state = state;
         decoder.updateState(state);
+        encoder.updateState(state);
+    }
+
+    public void updateDecoderState(State state) {
+        decoder.updateState(state);
+    }
+
+    public void updateEncoderState(State state) {
         encoder.updateState(state);
     }
 
