@@ -47,7 +47,7 @@ public class PacketHandler {
         conn.updateVersion(packet.getVersion());
         conn.updateState(packet.getNextState());
 
-        Logger.debug("Received ping from %s [%s]", conn.getAddress(),
+        Log.debug("Received ping from %s [%s]", conn.getAddress(),
                 conn.getClientVersion().toString());
 
         if (server.getConfig().getInfoForwarding().isLegacy()) {
