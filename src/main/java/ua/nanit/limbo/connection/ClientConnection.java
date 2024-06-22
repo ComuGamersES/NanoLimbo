@@ -37,7 +37,7 @@ import ua.nanit.limbo.protocol.packets.play.PacketPlayerInfo;
 import ua.nanit.limbo.protocol.registry.State;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
-import ua.nanit.limbo.server.Logger;
+import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
 
 import javax.crypto.Mac;
@@ -105,7 +105,7 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (channel.isActive()) {
-            Logger.error("Unhandled exception: ", cause);
+            Log.error("Unhandled exception: ", cause);
         }
     }
 
@@ -217,7 +217,14 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
         if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null)
             writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
-        writePacket(PacketSnapshots.PACKET_REGISTRY_DATA);
+
+        if (clientVersion.moreOrEqual(Version.V1_20_5)) {
+            for (PacketSnapshot packet : PacketSnapshots.PACKETS_REGISTRY_DATA) {
+                writePacket(packet);
+            }
+        } else {
+            writePacket(PacketSnapshots.PACKET_REGISTRY_DATA);
+        }
 
         sendPacket(PacketSnapshots.PACKET_FINISH_CONFIGURATION);
     }
@@ -277,10 +284,6 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         encoder.updateState(state);
     }
 
-    public void updateDecoderState(State state) {
-        decoder.updateState(state);
-    }
-
     public void updateEncoderState(State state) {
         encoder.updateState(state);
     }
@@ -330,7 +333,8 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
         setAddress(socketAddressHostname);
         gameProfile.setUuid(uuid);
 
-        Logger.debug("Successfully verified BungeeGuard token");
+        Log.debug("Successfully verified BungeeGuard token");
+
         return true;
     }
 

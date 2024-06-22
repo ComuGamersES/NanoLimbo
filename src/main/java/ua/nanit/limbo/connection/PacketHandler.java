@@ -29,7 +29,7 @@ import ua.nanit.limbo.protocol.packets.status.PacketStatusPing;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusRequest;
 import ua.nanit.limbo.protocol.packets.status.PacketStatusResponse;
 import ua.nanit.limbo.server.LimboServer;
-import ua.nanit.limbo.server.Logger;
+import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
 
 import java.util.UUID;

@@ -1,9 +1,5 @@
 package ua.nanit.limbo.server;
 
-import ua.nanit.limbo.server.commands.ConnectionsCommand;
-import ua.nanit.limbo.server.commands.HelpCommand;
-import ua.nanit.limbo.server.commands.MemoryCommand;
-import ua.nanit.limbo.server.commands.StopCommand;
 import ua.nanit.limbo.server.commands.*;
 
 import java.util.*;
@@ -44,12 +40,12 @@ public final class CommandManager extends Thread {
                 try {
                     handler.execute();
                 } catch (Throwable t) {
-                    Logger.error("Cannot execute command:", t);
+                    Log.error("Cannot execute command:", t);
                 }
                 continue;
             }
 
-            Logger.info("Unknown command. Type \"help\" to get a list of available commands.");
+            Log.info("Unknown command. Type \"help\" to get commands list");
         }
     }
 
