@@ -22,6 +22,7 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ByteProcessor;
 import net.kyori.adventure.nbt.*;
+import org.jetbrains.annotations.NotNull;
 import ua.nanit.limbo.protocol.registry.Version;
 
 import java.io.IOException;
@@ -53,22 +54,29 @@ public class ByteMessage extends ByteBuf {
         return bytes;
     }
 
-    /* Minecraft's protocol methods */
-
     public int readVarInt() {
-        int i = 0;
-        int maxRead = Math.min(5, buf.readableBytes());
+        final int readable = buf.readableBytes();
+        if (readable == 0) {
+            throw new DecoderException("Empty buffer");
+        }
 
-        for (int j = 0; j < maxRead; j++) {
-            int k = buf.readByte();
+        // We can read at least one byte, and this should be a common case
+        int k = buf.readByte();
+        if ((k & 0x80) != 128) {
+            return k;
+        }
+
+        // In case decoding one byte was not enough, use a loop to decode up to the next 4 bytes
+        final int maxRead = Math.min(5, readable);
+        int i = k & 0x7F;
+        for (int j = 1; j < maxRead; j++) {
+            k = buf.readByte();
             i |= (k & 0x7F) << j * 7;
             if ((k & 0x80) != 128) {
                 return i;
             }
         }
-
-        buf.readBytes(maxRead);
-        throw new IllegalArgumentException("Cannot read VarInt");
+        throw new DecoderException("Bad VarInt");
     }
 
     public void writeVarInt(int value) {
@@ -106,13 +114,22 @@ public class ByteMessage extends ByteBuf {
         }
     }
 
-    public String readString() {
-        return readString(readVarInt());
+    public @NotNull String readString() throws DecoderException {
+        return readString(Short.MAX_VALUE);
     }
 
-    public String readString(int length) {
-        String str = buf.toString(buf.readerIndex(), length, StandardCharsets.UTF_8);
-        buf.skipBytes(length);
+    public @NotNull String readString(int cap) throws DecoderException {
+        final int length = readVarInt();
+        return readString(cap, length);
+    }
+
+    public @NotNull String readString(int cap, int length) throws DecoderException {
+        if (length < 0) throw new DecoderException("Got a negative-length string");
+        if (length > cap * 3) throw new DecoderException("Bad string size");
+        if (!buf.isReadable(length)) throw new DecoderException("Tried to read a too-long string");
+        final String str = buf.toString(buf.readerIndex(), length, StandardCharsets.UTF_8);
+        buf.readerIndex(buf.readerIndex() + length);
+        if (str.length() > cap) throw new DecoderException("Got a too-long string");
         return str;
     }
 
@@ -124,6 +141,10 @@ public class ByteMessage extends ByteBuf {
 
     public byte[] readBytesArray() {
         int length = readVarInt();
+        return readBytesArray(length);
+    }
+
+    public byte[] readBytesArray(int length) {
         byte[] array = new byte[length];
         buf.readBytes(array);
         return array;
@@ -191,8 +212,7 @@ public class ByteMessage extends ByteBuf {
             for (CompoundBinaryTag tag : compoundTags) {
                 BinaryTagIO.writer().write(tag, (OutputStream) stream);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new EncoderException("Cannot write NBT CompoundTag");
         }
     }
@@ -200,8 +220,7 @@ public class ByteMessage extends ByteBuf {
     public CompoundBinaryTag readCompoundTag() {
         try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
             return BinaryTagIO.reader().read((InputStream) stream);
-        }
-        catch (IOException thrown) {
+        } catch (IOException thrown) {
             throw new DecoderException("Cannot read NBT CompoundTag");
         }
     }
@@ -209,8 +228,7 @@ public class ByteMessage extends ByteBuf {
     public void writeCompoundTag(CompoundBinaryTag compoundTag) {
         try (ByteBufOutputStream stream = new ByteBufOutputStream(buf)) {
             BinaryTagIO.writer().write(compoundTag, (OutputStream) stream);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new EncoderException("Cannot write NBT CompoundTag");
         }
     }
@@ -223,42 +241,33 @@ public class ByteMessage extends ByteBuf {
             if (binaryTag instanceof CompoundBinaryTag) {
                 CompoundBinaryTag tag = (CompoundBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof ByteBinaryTag) {
+            } else if (binaryTag instanceof ByteBinaryTag) {
                 ByteBinaryTag tag = (ByteBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof ShortBinaryTag) {
+            } else if (binaryTag instanceof ShortBinaryTag) {
                 ShortBinaryTag tag = (ShortBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else  if (binaryTag instanceof IntBinaryTag) {
+            } else if (binaryTag instanceof IntBinaryTag) {
                 IntBinaryTag tag = (IntBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof LongBinaryTag) {
+            } else if (binaryTag instanceof LongBinaryTag) {
                 LongBinaryTag tag = (LongBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof DoubleBinaryTag) {
+            } else if (binaryTag instanceof DoubleBinaryTag) {
                 DoubleBinaryTag tag = (DoubleBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof StringBinaryTag) {
+            } else if (binaryTag instanceof StringBinaryTag) {
                 StringBinaryTag tag = (StringBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof ListBinaryTag) {
+            } else if (binaryTag instanceof ListBinaryTag) {
                 ListBinaryTag tag = (ListBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
-            }
-            else if (binaryTag instanceof EndBinaryTag) {
+            } else if (binaryTag instanceof EndBinaryTag) {
                 EndBinaryTag tag = (EndBinaryTag) binaryTag;
                 tag.type().write(tag, stream);
             }
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new EncoderException("Cannot write NBT CompoundTag");
         }
     }
@@ -266,8 +275,7 @@ public class ByteMessage extends ByteBuf {
     public void writeNbtMessage(NbtMessage nbtMessage, Version version) {
         if (version.moreOrEqual(Version.V1_20_3)) {
             writeNamelessCompoundTag(nbtMessage.getTag());
-        }
-        else {
+        } else {
             writeString(nbtMessage.getJson());
         }
     }

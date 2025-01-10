@@ -33,7 +33,6 @@ import ua.nanit.limbo.protocol.Packet;
 import ua.nanit.limbo.protocol.PacketSnapshot;
 import ua.nanit.limbo.protocol.packets.login.PacketDisconnect;
 import ua.nanit.limbo.protocol.packets.play.PacketKeepAlive;
-import ua.nanit.limbo.protocol.packets.play.PacketPlayerInfo;
 import ua.nanit.limbo.protocol.registry.State;
 import ua.nanit.limbo.protocol.registry.Version;
 import ua.nanit.limbo.server.LimboServer;
@@ -46,6 +45,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -130,26 +130,6 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
 
         server.getConnections().addConnection(this);
 
-        // get the default player info packet snapshot
-        PacketSnapshot LOCAL_PACKET_PLAYER_INFO;
-
-        // allow usage of the %PLAYER% placeholder.
-        // probably not the best way to do it, but it works i guess?
-        if(server.getConfig().isUsePlayerList() && server.getConfig().getPlayerListUsername().contains("%PLAYER%")) {
-            // create a new player info packet
-            PacketPlayerInfo info = new PacketPlayerInfo();
-
-            // set username, game mode and uuid
-            info.setUsername(server.getConfig().getPlayerListUsername().replace("%PLAYER%", getUsername()));
-            info.setGameMode(server.getConfig().getGameMode());
-            info.setUuid(getUuid());
-
-            // set the modified packet snapshot
-            LOCAL_PACKET_PLAYER_INFO = PacketSnapshot.of(info);
-        } else {
-            LOCAL_PACKET_PLAYER_INFO = PacketSnapshots.PACKET_PLAYER_INFO;
-        }
-
         // Preparing for configuration mode
         if (clientVersion.moreOrEqual(Version.V1_20_2)) {
             updateEncoderState(State.CONFIGURATION);
@@ -172,34 +152,42 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
                 writePacket(PacketSnapshots.PACKET_PLAYER_POS_AND_LOOK);
             }
 
-            if (clientVersion.moreOrEqual(Version.V1_19_3))
+            if (clientVersion.moreOrEqual(Version.V1_19_3)) {
                 writePacket(PacketSnapshots.PACKET_SPAWN_POSITION);
+            }
+
+            if (server.getConfig().isUsePlayerList() || clientVersion.equals(Version.V1_16_4)) {
+                writePacket(PacketSnapshots.PACKET_PLAYER_INFO);
+            }
 
             if (clientVersion.moreOrEqual(Version.V1_13)) {
                 writePacket(PacketSnapshots.PACKET_DECLARE_COMMANDS);
 
-                if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null)
+                if (PacketSnapshots.PACKET_PLUGIN_MESSAGE != null) {
                     writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
+                }
             }
 
-            if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9))
+            if (PacketSnapshots.PACKET_BOSS_BAR != null && clientVersion.moreOrEqual(Version.V1_9)) {
                 writePacket(PacketSnapshots.PACKET_BOSS_BAR);
+            }
 
-            if (PacketSnapshots.PACKET_JOIN_MESSAGE != null)
+            if (PacketSnapshots.PACKET_JOIN_MESSAGE != null) {
                 writePacket(PacketSnapshots.PACKET_JOIN_MESSAGE);
+            }
 
-            if (PacketSnapshots.PACKET_TITLE_TITLE != null && clientVersion.moreOrEqual(Version.V1_8))
+            if (PacketSnapshots.PACKET_TITLE_TITLE != null && clientVersion.moreOrEqual(Version.V1_8)) {
                 writeTitle();
+            }
 
-            if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null && clientVersion.moreOrEqual(Version.V1_8))
+            if (PacketSnapshots.PACKET_HEADER_AND_FOOTER != null && clientVersion.moreOrEqual(Version.V1_8)) {
                 writePacket(PacketSnapshots.PACKET_HEADER_AND_FOOTER);
+                }
 
             if (clientVersion.moreOrEqual(Version.V1_20_3)) {
                 writePacket(PacketSnapshots.PACKET_START_WAITING_CHUNKS);
 
-                for (PacketSnapshot chunk : PacketSnapshots.PACKETS_EMPTY_CHUNKS) {
-                    writePacket(chunk);
-                }
+                writePackets(PacketSnapshots.PACKETS_EMPTY_CHUNKS);
             }
 
             sendKeepAlive();
@@ -219,14 +207,30 @@ public class ClientConnection extends ChannelInboundHandlerAdapter {
             writePacket(PacketSnapshots.PACKET_PLUGIN_MESSAGE);
 
         if (clientVersion.moreOrEqual(Version.V1_20_5)) {
-            for (PacketSnapshot packet : PacketSnapshots.PACKETS_REGISTRY_DATA) {
-                writePacket(packet);
+            writePacket(PacketSnapshots.PACKET_KNOWN_PACKS);
+
+            if (clientVersion.moreOrEqual(Version.V1_21_4)) {
+                writePackets(PacketSnapshots.PACKETS_REGISTRY_DATA_1_21_4);
+            } else if (clientVersion.moreOrEqual(Version.V1_21_2)) {
+                writePackets(PacketSnapshots.PACKETS_REGISTRY_DATA_1_21_2);
+            } else if (clientVersion.moreOrEqual(Version.V1_21)) {
+                writePackets(PacketSnapshots.PACKETS_REGISTRY_DATA_1_21);
+            } else if (clientVersion.moreOrEqual(Version.V1_20_5)) {
+                writePackets(PacketSnapshots.PACKETS_REGISTRY_DATA_1_20_5);
             }
+
+            writePacket(PacketSnapshots.PACKET_UPDATE_TAGS);
         } else {
             writePacket(PacketSnapshots.PACKET_REGISTRY_DATA);
         }
 
         sendPacket(PacketSnapshots.PACKET_FINISH_CONFIGURATION);
+    }
+
+    private void writePackets(List<PacketSnapshot> packets) {
+        for (PacketSnapshot packet : packets) {
+            writePacket(packet);
+        }
     }
 
     public void disconnectLogin(String reason) {

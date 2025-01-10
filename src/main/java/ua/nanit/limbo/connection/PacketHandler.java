@@ -32,7 +32,6 @@ import ua.nanit.limbo.server.LimboServer;
 import ua.nanit.limbo.server.Log;
 import ua.nanit.limbo.util.UuidUtil;
 
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PacketHandler {
