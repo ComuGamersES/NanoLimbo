@@ -263,8 +263,12 @@ public final class PacketSnapshots {
                     CompoundBinaryTag element = entryTag.getCompound("element", null);
 
                     message.writeString(name);
-                    message.writeBoolean(true);
-                    message.writeNamelessCompoundTag(element);
+                    if (element != null) {
+                        message.writeBoolean(true);
+                        message.writeNamelessCompoundTag(element);
+                    } else {
+                        message.writeBoolean(false);
+                    }
                 }
             });
 

@@ -289,12 +289,7 @@ public class PacketJoinGame implements PacketOut {
             msg.writeBoolean(reducedDebugInfo);
             msg.writeBoolean(enableRespawnScreen);
             msg.writeBoolean(limitedCrafting);
-            if (version.moreOrEqual(Version.V1_21)) {
-                msg.writeVarInt(dimensionRegistry.getDimension_1_21().getId());
-            }
-            else {
-                msg.writeVarInt(dimensionRegistry.getDimension_1_20_5().getId());
-            }
+            msg.writeVarInt(dimensionRegistry.getDimension_1_20_5().getId());
             msg.writeString(worldName);
             msg.writeLong(hashedSeed);
             msg.writeByte(gameMode);
@@ -303,6 +298,7 @@ public class PacketJoinGame implements PacketOut {
             msg.writeBoolean(isFlat);
             msg.writeBoolean(false);
             msg.writeVarInt(0);
+            msg.writeBoolean(secureProfile);
         }
 
         if (version.moreOrEqual(Version.V1_21_2)) {
@@ -324,6 +320,7 @@ public class PacketJoinGame implements PacketOut {
             msg.writeBoolean(false);
             msg.writeVarInt(0);
             msg.writeVarInt(0);
+            msg.writeBoolean(secureProfile);
         }
     }
 

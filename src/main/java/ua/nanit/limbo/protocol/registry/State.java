@@ -119,6 +119,11 @@ public enum State {
             );
 
             serverBound.register(
+                    PacketPluginMessage::new,
+                    map(0x01, V1_20_2, V1_20_3),
+                    map(0x02, V1_20_2, V1_21_4)
+            );
+            serverBound.register(
                     PacketFinishConfiguration::new,
                     map(0x02, V1_20_2, V1_20_3),
                     map(0x03, V1_20_5, V1_21_4)
@@ -400,7 +405,8 @@ public enum State {
             return registry.getOrDefault(version, registry.get(getMin()));
         }
 
-        public void register(Supplier<?> packet, Mapping... mappings) {
+        @SuppressWarnings("ClassEscapesDefinedScope")
+        public final void register(Supplier<?> packet, Mapping... mappings) {
             for (Mapping mapping : mappings) {
                 for (Version ver : getRange(mapping)) {
                     PacketRegistry reg = registry.computeIfAbsent(ver, PacketRegistry::new);
